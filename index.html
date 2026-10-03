@@ -122,6 +122,16 @@
         padding: 20px 16px;
       }
 
+      .upload-box {
+        transition: border-color 0.15s, background 0.15s;
+      }
+
+      .upload-box.dragover {
+        border-color: var(--accent);
+        border-style: dashed;
+        background: #eff4ff;
+      }
+
       .upload-box label {
         display: block;
         font-size: 14px;
@@ -394,8 +404,8 @@
 
       <section>
         <h2>Select images</h2>
-        <div class="upload-box">
-          <label for="filepicker">Choose one or more images to summarize</label>
+        <div class="upload-box" id="dropzone">
+          <label for="filepicker">Choose one or more images, or drag &amp; drop them here</label>
           <input type="file" id="filepicker" accept="image/*" multiple />
         </div>
       </section>
@@ -411,7 +421,7 @@
       <section class="about">
         <h2>About</h2>
         <p>OpenSummary is a free and open source tool to easily summarize and split pictures to post on social media. Everything happens on your device, so your pictures are 100% safe. You can find the GitHub repo below.</p>
-        <a href="https://github.com/letsPlaySimi/OpenSummary" target="_blank">
+        <a href="https://github.com/username/repository" target="_blank">
   <img src="https://img.shields.io/github/stars/letsplaysimi/exif-js-fix?style=for-the-badge&logo=github&label=Repository" alt="GitHub Stars" />
 </a>
      </section>
@@ -666,6 +676,26 @@ copyrightInput.addEventListener("change", render);
 blurInput.addEventListener("input", () => { blurVal.textContent = blurInput.value; renderSoon(); });
 piecesInput.addEventListener("input", () => { piecesVal.textContent = piecesInput.value; renderSoon(); });
 updateVisibility();
+
+// ---- drag & drop ----
+const dropzone = document.getElementById("dropzone");
+let dragDepth = 0;
+
+// stop the browser from opening a file dropped outside the zone
+["dragover", "drop"].forEach(t => window.addEventListener(t, e => e.preventDefault()));
+
+dropzone.addEventListener("dragenter", () => { dragDepth++; dropzone.classList.add("dragover"); });
+dropzone.addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; dropzone.classList.remove("dragover"); } });
+dropzone.addEventListener("drop", e => {
+  e.preventDefault();
+  dragDepth = 0;
+  dropzone.classList.remove("dragover");
+  const dt = new DataTransfer();
+  [...e.dataTransfer.files].filter(f => f.type.startsWith("image/")).forEach(f => dt.items.add(f));
+  if (!dt.files.length) return;
+  fileInput.files = dt.files;
+  fileInput.dispatchEvent(new Event("change")); // reuse the normal picker flow
+});
 </script>
   </body>
 </html>
