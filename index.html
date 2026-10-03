@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenSummary.app</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --surface: #f6f7f8;
+        --border: #dde1e4;
+        --text: #1c1f22;
+        --text-muted: #62686e;
+        --accent: #2563eb;
+        --accent-hover: #1d4ed8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+        padding: 20px 16px 48px;
+      }
+
+      .page {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0 0 4px;
+        color: var(--text);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 4px;
+      }
+
+      .logo-placeholder {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        border-radius: 9px;
+        background: linear-gradient(135deg, var(--accent), #60a5fa);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .tagline {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin: 0 0 28px;
+      }
+
+      h2 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 12px;
+      }
+
+      section {
+        margin-bottom: 24px;
+      }
+
+      /* ---- Mode checkboxes ---- */
+      .modes {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .check-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .check-row input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin: 0;
+        accent-color: var(--accent);
+        flex-shrink: 0;
+      }
+
+      .check-row label {
+        font-size: 15px;
+        width: 100%;
+      }
+
+      /* ---- Upload area ---- */
+      .upload-box {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        padding: 20px 16px;
+      }
+
+      .upload-box label {
+        display: block;
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+      }
+
+      .upload-box input[type="file"] {
+        width: 100%;
+        font-size: 14px;
+        color: var(--text);
+      }
+
+      .upload-box input[type="file"]::file-selector-button {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 16px;
+        margin-right: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      .upload-box input[type="file"]::file-selector-button:hover {
+        background: var(--accent-hover);
+      }
+
+      .upload-box input[type="text"] {
+        width: 100%;
+        font-size: 16px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: #fff;
+        color: var(--text);
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .slider-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        font-size: 15px;
+      }
+
+      .slider-row input[type="range"] {
+        flex: 1;
+        min-width: 0;
+        accent-color: var(--accent);
+      }
+
+      .slider-row output {
+        width: 2.5ch;
+        text-align: right;
+        color: var(--text-muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ---- Output ---- */
+      .output-panel {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        min-height: 80px;
+        padding: 16px;
+      }
+
+      .output-panel:empty::before {
+        content: "Nothing here yet — pick some images above.";
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      #summaryResults,
+      #splitResults {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .result-item {
+        display: flex;
+        flex-direction: column;
+        max-width: 100%;
+      }
+
+      #summaryResults img,
+      #splitResults img {
+        max-width: 100%;
+        width: 100%;
+        height: auto;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        display: block;
+      }
+
+      #summaryResults button,
+      #splitResults button {
+        display: block;
+        margin-top: 8px;
+        width: 100%;
+        background: #fff;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      #summaryResults button:hover,
+      #splitResults button:hover {
+        background: #eff4ff;
+      }
+
+      /* ---- About / footer ---- */
+      .about {
+        border-top: 1px solid var(--border);
+        padding-top: 20px;
+        margin-top: 32px;
+      }
+
+      .about p {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+      }
+
+      /* ---- Mobile-first: a little more breathing room once there's space ---- */
+      @media (min-width: 480px) {
+        body {
+          padding: 40px 24px 64px;
+        }
+
+        .modes {
+          flex-direction: row;
+        }
+
+        .check-row {
+          flex: 1;
+        }
+
+        #summaryResults,
+        #splitResults {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+
+        .result-item {
+          width: 240px;
+        }
+      }
+
+      /* ---- Desktop: bigger canvas, bigger type, not just a stretched phone layout ---- */
+      @media (min-width: 900px) {
+        body {
+          padding: 64px 24px 96px;
+        }
+
+        .page {
+          max-width: 760px;
+        }
+
+        .logo-placeholder {
+          width: 48px;
+          height: 48px;
+          border-radius: 11px;
+          font-size: 17px;
+        }
+
+        h1 {
+          font-size: 30px;
+        }
+
+        .tagline {
+          font-size: 16px;
+          margin-bottom: 36px;
+        }
+
+        h2 {
+          font-size: 17px;
+        }
+
+        .check-row {
+          padding: 14px 16px;
+        }
+
+        .check-row label {
+          font-size: 16px;
+        }
+
+        .upload-box {
+          padding: 28px 24px;
+        }
+
+        .upload-box label {
+          font-size: 15px;
+        }
+
+        #summaryResults img,
+        #splitResults img,
+        #summaryResults button,
+        #splitResults button {
+          width: 100%;
+        }
+
+        .result-item {
+          width: 280px;
+        }
+
+        .about p {
+          font-size: 14px;
+        }
+      }
+    </style>
+    <script src="./exif.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/context-filter-polyfill/dist/index.min.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <div class="brand">
+          <div class="logo-placeholder" aria-hidden="true">OS</div>
+          <h1>OpenSummary.app</h1>
+        </div>
+        <p class="tagline">Add EXIF info to your photos</p>
+      </header>
+
+      <section>
+        <h2>Options</h2>
+        <div class="modes">
+          <div class="check-row">
+            <input type="checkbox" name="Summarize" id="summarize" checked />
+            <label for="summarize">Summarize</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" name="Split" id="split" />
+            <label for="split">Split</label>
+          </div>
+        </div>
+        <div class="slider-row" id="blurRow">
+          <label for="blur">Blur strength</label>
+          <input type="range" id="blur" min="0" max="10" step="0.5" value="4" />
+          <output id="blurVal">4</output>
+        </div>
+        <div class="slider-row" id="piecesRow" hidden>
+          <label for="pieces">Split pieces</label>
+          <input type="range" id="pieces" min="2" max="10" step="1" value="2" />
+          <output id="piecesVal">2</output>
+        </div>
+      </section>
+
+      <section id="copyrightSection">
+        <h2>Copyright <span style="font-weight:400;color:var(--text-muted)">(optional)</span></h2>
+        <div class="upload-box">
+          <input type="text" id="copyright" placeholder="© Your name" autocomplete="off" />
+        </div>
+      </section>
+
+      <section>
+        <h2>Select images</h2>
+        <div class="upload-box">
+          <label for="filepicker">Choose one or more images to summarize</label>
+          <input type="file" id="filepicker" accept="image/*" multiple />
+        </div>
+      </section>
+
+      <section>
+        <h2>Output</h2>
+        <div class="output-panel">
+          <div id="summaryResults"></div>
+          <div id="splitResults"></div>
+        </div>
+      </section>
+
+      <section class="about">
+        <h2>About</h2>
+        <p>Lorem Ipsum Sex ka ich hatte kein Latein</p>
+        <a href="https://github.com/letsPlaySimi/OpenSummary" target="_blank">
+  <img src="https://img.shields.io/github/stars/letsplaysimi/exif-js-fix?style=for-the-badge&logo=github&label=Repository" alt="GitHub Stars" />
+</a>
+     </section>
+    </div>
+  
+<script>
+const TEXT_COLOR = "rgba(210, 210, 210, 0.9)";
+const ICON_NAMES = ["aperture", "exposure", "iso", "focalLength", "dateTime", "camera", "lens", "copyright", "website"];
+const icons = {};
+
+// Load by name (NOT push-on-load, which scrambles the order)
+const iconsReady = Promise.all(ICON_NAMES.map(name => new Promise(resolve => {
+  const img = new Image();
+  img.onload = () => { icons[name] = img; resolve(); };
+  img.onerror = () => { console.warn("Missing icon:", name); resolve(); };
+  img.src = "./icons/" + name + ".svg";
+})));
+
+const canvasToBlob = (canvas, type = "image/jpeg", q = 0.92) =>
+  new Promise(res => canvas.toBlob(res, type, q));
+
+const loadImage = src => new Promise((res, rej) => {
+  const img = new Image();
+  img.onload = () => res(img);
+  img.onerror = rej;
+  img.src = src;
+});
+
+const getExif = file => new Promise(res => EXIF.getData(file, function () { res(this); }));
+
+// ---- formatting (0/0 rationals => NaN/Infinity => row is skipped) ----
+const num = v => { const n = Number(v); return v != null && isFinite(n) && n > 0 ? n : null; };
+const clean = s => (typeof s === "string" ? s.replace(/\0/g, "").trim() : "");
+
+function fmtExposure(t) {
+  t = num(t);
+  if (!t) return null;
+  return t >= 1 ? (Math.round(t * 10) / 10) + "s" : "1/" + Math.round(1 / t) + "s";
+}
+
+function buildInfo(ex, copyright) {
+  const f = num(EXIF.getTag(ex, "FNumber"));
+  const fl = num(EXIF.getTag(ex, "FocalLength"));
+  let iso = EXIF.getTag(ex, "ISOSpeedRatings");
+  if (Array.isArray(iso)) iso = iso[0];
+
+  const make = clean(EXIF.getTag(ex, "Make"));
+  const model = clean(EXIF.getTag(ex, "Model"));
+  const cam = model.toLowerCase().startsWith(make.toLowerCase()) ? model : (make + " " + model).trim();
+
+  const lMake = clean(EXIF.getTag(ex, "LensMake"));
+  const lModel = clean(EXIF.getTag(ex, "LensModel"));
+  const lens = lModel.toLowerCase().startsWith(lMake.toLowerCase()) ? lModel : (lMake + " " + lModel).trim();
+
+  return {
+    top: [
+      ["aperture", f && "f/" + Math.round(f * 10) / 10],
+      ["exposure", fmtExposure(EXIF.getTag(ex, "ExposureTime"))],
+      ["iso", num(iso) && "ISO " + num(iso)],
+      ["focalLength", fl && Math.round(fl) + "mm"],
+      ["dateTime", clean(EXIF.getTag(ex, "DateTimeOriginal"))],
+    ].filter(r => r[1]),
+    bottom: [
+      ["camera", cam],
+      ["lens", lens],
+      ["copyright", copyright],
+    ].filter(r => r[1]),
+  };
+}
+
+// ---- drawing ----
+// Everything is sized relative to the image's shorter side, so a preview rendered
+// at 1200px and a full-resolution render at 4000px+ look identical.
+const PREVIEW_MAX = 1200;      // long side of on-screen preview
+const CANVAS_MAX_PX = 16e6;    // stay under mobile canvas limits
+
+async function drawSummary(image, info, blurPct, maxSide = Infinity) {
+  let scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+  scale = Math.min(scale, Math.sqrt(CANVAS_MAX_PX / (image.naturalWidth * image.naturalHeight)));
+  const w = Math.round(image.naturalWidth * scale), h = Math.round(image.naturalHeight * scale);
+  const base = Math.min(w, h);
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+
+  // blur radius = % of the shorter side; overscan so blurred edges get cropped (no halo)
+  const radius = base * blurPct / 100, o = radius * 2;
+  ctx.imageSmoothingQuality = "high";
+  if (radius > 0) ctx.filter = `blur(${radius}px)`;
+  ctx.drawImage(image, -o, -o, w + o * 2, h + o * 2);
+  ctx.filter = "none";
+
+  const pad = base * 0.073, size = base * 0.044, step = pad * 1.2;
+  ctx.font = `${size}px Inter, Helvetica, Arial, sans-serif`;
+  ctx.fillStyle = TEXT_COLOR;
+  ctx.textBaseline = "top";
+  ctx.shadowColor = "rgba(0,0,0,1)";
+  ctx.shadowBlur = base * 0.018;
+  ctx.shadowOffsetX = ctx.shadowOffsetY = base * 0.003;
+
+  const row = (name, text, y) => {
+    if (icons[name]) ctx.drawImage(icons[name], pad, y, size, size);
+    ctx.fillText(text, pad * 2, y);
+  };
+
+  let y = pad;
+  for (const [name, text] of info.top) { row(name, text, y); y += step; }
+
+  if (info.top.length && info.bottom.length) {
+    ctx.strokeStyle = TEXT_COLOR;
+    ctx.lineWidth = Math.max(2, base * 0.003);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(pad, y + size / 2);
+    ctx.lineTo(Math.min(w - pad, pad + base * 0.75), y + size / 2);
+    ctx.stroke();
+    y += step;
+  }
+  for (const [name, text] of info.bottom) { row(name, text, y); y += step; }
+
+  ctx.textBaseline = "bottom";
+  if (icons.website) ctx.drawImage(icons.website, pad, h - pad - size, size, size);
+  ctx.fillText("OpenSummary.app", pad * 2, h - pad);
+  return c;
+}
+
+// Cut piece i of n (left to right) out of the original photo
+function drawPiece(image, i, n, maxSide = Infinity) {
+  const W = image.naturalWidth, H = image.naturalHeight;
+  const sx = Math.round(i * W / n), sw = Math.round((i + 1) * W / n) - sx;
+  let scale = Math.min(1, maxSide / Math.max(sw, H));
+  scale = Math.min(scale, Math.sqrt(CANVAS_MAX_PX / (sw * H)));
+  const c = document.createElement("canvas");
+  c.width = Math.round(sw * scale); c.height = Math.round(H * scale);
+  const ctx = c.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(image, sx, 0, sw, H, 0, 0, c.width, c.height);
+  return c;
+}
+
+// ---- UI ----
+let urls = [];
+const mkUrl = blob => { const u = URL.createObjectURL(blob); urls.push(u); return u; };
+
+// getFull (optional): async () => Blob, rendered only when Download is clicked
+function addResult(container, previewBlob, filename, getFull) {
+  const url = mkUrl(previewBlob);
+  const item = document.createElement("div");
+  item.className = "result-item";
+  const img = document.createElement("img");
+  img.src = url; img.alt = filename;
+  const btn = document.createElement("button");
+  btn.className = "downloadBtn";
+  btn.textContent = "Download";
+  btn.onclick = async () => {
+    btn.disabled = true; btn.textContent = "Preparing…";
+    try {
+      const blob = getFull ? await getFull() : previewBlob;
+      const dl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = dl; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(dl), 10000);
+    } finally {
+      btn.disabled = false; btn.textContent = "Download";
+    }
+  };
+  item.append(img, btn);
+  container.appendChild(item);
+}
+
+const fileInput = document.getElementById("filepicker");
+const summarizeBox = document.getElementById("summarize");
+const splitBox = document.getElementById("split");
+const copyrightInput = document.getElementById("copyright");
+const blurInput = document.getElementById("blur");
+const blurVal = document.getElementById("blurVal");
+const piecesInput = document.getElementById("pieces");
+const piecesVal = document.getElementById("piecesVal");
+const blurRow = document.getElementById("blurRow");
+const piecesRow = document.getElementById("piecesRow");
+const copyrightSection = document.getElementById("copyrightSection");
+const summaryEl = document.getElementById("summaryResults");
+const splitEl = document.getElementById("splitResults");
+const cache = new Map(); // File -> { ex, img, src }
+let runId = 0;
+
+async function load(file) {
+  if (!cache.has(file)) {
+    const ex = await getExif(file);
+    const src = URL.createObjectURL(file);
+    cache.set(file, { ex, src, img: await loadImage(src) });
+  }
+  return cache.get(file);
+}
+
+async function render() {
+  const id = ++runId;
+  urls.forEach(u => URL.revokeObjectURL(u)); urls = [];
+  summaryEl.innerHTML = splitEl.innerHTML = "";
+  const files = [...fileInput.files];
+  if (!files.length) return;
+  await iconsReady;
+
+  const blurPct = parseFloat(blurInput.value);
+  const n = parseInt(piecesInput.value, 10);
+  const wantSummary = summarizeBox.checked;
+  const wantSplit = splitBox.checked;
+
+  for (const file of files) {
+    if (id !== runId) return; // options changed meanwhile
+    try {
+      const { ex, img } = await load(file);
+      const name = file.name.replace(/\.[^.]+$/, "");
+
+      if (wantSummary) {
+        const info = buildInfo(ex, copyrightInput.value.trim());
+        const preview = await canvasToBlob(await drawSummary(img, info, blurPct, PREVIEW_MAX), "image/jpeg", 0.9);
+        // full-quality render happens on demand with the exact same parameters
+        const full = async () => canvasToBlob(await drawSummary(img, info, blurPct), "image/jpeg", 0.95);
+        if (id !== runId) return;
+        addResult(summaryEl, preview, name + "_summary.jpg", full);
+      }
+
+      if (wantSplit) {
+        for (let i = 0; i < n; i++) {
+          const preview = await canvasToBlob(drawPiece(img, i, n, PREVIEW_MAX), "image/jpeg", 0.9);
+          const full = async () => canvasToBlob(drawPiece(img, i, n), "image/jpeg", 0.95);
+          if (id !== runId) return;
+          addResult(splitEl, preview, `${name}_${i + 1}of${n}.jpg`, full);
+        }
+      }
+    } catch (e) {
+      console.error("Failed on", file.name, e);
+    }
+  }
+}
+
+let timer;
+const renderSoon = () => { clearTimeout(timer); timer = setTimeout(render, 120); };
+
+fileInput.addEventListener("change", () => {
+  cache.forEach(c => URL.revokeObjectURL(c.src)); cache.clear();
+  render();
+});
+function updateVisibility() {
+  blurRow.hidden = copyrightSection.hidden = !summarizeBox.checked;
+  piecesRow.hidden = !splitBox.checked;
+}
+[summarizeBox, splitBox].forEach(el => el.addEventListener("change", () => { updateVisibility(); render(); }));
+copyrightInput.addEventListener("change", render);
+blurInput.addEventListener("input", () => { blurVal.textContent = blurInput.value; renderSoon(); });
+piecesInput.addEventListener("input", () => { piecesVal.textContent = piecesInput.value; renderSoon(); });
+updateVisibility();
+</script>
+  </body>
+</html>
