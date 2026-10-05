@@ -344,6 +344,63 @@
         max-width: 100%;
       }
 
+      /* Split pieces: one row per source image, always side by side, like a filmstrip.
+         Every piece in a row has the same capped height (width follows the piece's shape),
+         so many thin pieces never get taller than the screen. If the row is wider than
+         the panel, only that row scrolls sideways. */
+      .split-row {
+        --piece-h: clamp(180px, 40vh, 320px);
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .split-row .result-item {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 96px; /* keeps the Download button usable under thin pieces */
+        max-width: none;
+      }
+
+      #splitResults .split-row img {
+        width: auto;
+        max-width: none;
+        height: var(--piece-h);
+        align-self: center;
+      }
+
+      /* breathing room between the summary list and the split rows */
+      #summaryResults:not(:empty) + #splitResults:not(:empty) {
+        margin-top: 20px;
+      }
+
+      .download-all {
+        display: block;
+        width: 100%;
+        margin-bottom: 12px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      .download-all:hover {
+        background: var(--accent-hover);
+      }
+
+      .download-all:disabled {
+        opacity: 0.7;
+        cursor: default;
+      }
+
       #summaryResults img,
       #splitResults img {
         max-width: 100%;
@@ -401,8 +458,7 @@
           flex: 1;
         }
 
-        #summaryResults,
-        #splitResults {
+        #summaryResults {
           flex-direction: row;
           flex-wrap: wrap;
         }
@@ -532,6 +588,7 @@
 
       <section>
         <h2>Output</h2>
+        <button type="button" id="downloadAll" class="download-all" hidden>Download all</button>
         <div class="output-panel">
           <div id="summaryResults"></div>
           <div id="splitResults"></div>
@@ -711,6 +768,15 @@ function drawPiece(image, i, n, maxSide = Infinity) {
 
 // ---- UI ----
 let urls = [];
+let results = []; // everything currently shown: { filename, previewBlob, getFull }
+
+function saveBlob(blob, filename) {
+  const dl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = dl; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(dl), 10000);
+}
 const mkUrl = blob => { const u = URL.createObjectURL(blob); urls.push(u); return u; };
 
 // getFull (optional): async () => Blob, rendered only when Download is clicked
@@ -726,18 +792,15 @@ function addResult(container, previewBlob, filename, getFull) {
   btn.onclick = async () => {
     btn.disabled = true; btn.textContent = "Preparing…";
     try {
-      const blob = getFull ? await getFull() : previewBlob;
-      const dl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = dl; a.download = filename;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(dl), 10000);
+      saveBlob(getFull ? await getFull() : previewBlob, filename);
     } finally {
       btn.disabled = false; btn.textContent = "Download";
     }
   };
   item.append(img, btn);
   container.appendChild(item);
+  results.push({ filename, previewBlob, getFull });
+  downloadAllBtn.hidden = false;
 }
 
 const fileInput = document.getElementById("filepicker");
@@ -753,6 +816,7 @@ const piecesRow = document.getElementById("piecesRow");
 const copyrightSection = document.getElementById("copyrightSection");
 const summaryEl = document.getElementById("summaryResults");
 const splitEl = document.getElementById("splitResults");
+const downloadAllBtn = document.getElementById("downloadAll");
 const cache = new Map(); // File -> { ex, img, src }
 let runId = 0;
 
@@ -769,6 +833,7 @@ async function render() {
   const id = ++runId;
   urls.forEach(u => URL.revokeObjectURL(u)); urls = [];
   summaryEl.innerHTML = splitEl.innerHTML = "";
+  results = []; downloadAllBtn.hidden = true;
   const files = [...fileInput.files];
   if (!files.length) return;
   await iconsReady;
@@ -794,11 +859,17 @@ async function render() {
       }
 
       if (wantSplit) {
+        let row = null; // one row per source image, created with its first piece
         for (let i = 0; i < n; i++) {
           const preview = await canvasToBlob(drawPiece(img, i, n, PREVIEW_MAX), "image/jpeg", 0.9);
           const full = async () => canvasToBlob(drawPiece(img, i, n), "image/jpeg", 0.95);
           if (id !== runId) return;
-          addResult(splitEl, preview, `${name}_${i + 1}of${n}.jpg`, full);
+          if (!row) {
+            row = document.createElement("div");
+            row.className = "split-row";
+            splitEl.appendChild(row);
+          }
+          addResult(row, preview, `${name}_${i + 1}of${n}.jpg`, full);
         }
       }
     } catch (e) {
@@ -823,6 +894,23 @@ copyrightInput.addEventListener("change", render);
 blurInput.addEventListener("input", () => { blurVal.textContent = blurInput.value; renderSoon(); });
 piecesInput.addEventListener("input", () => { piecesVal.textContent = piecesInput.value; renderSoon(); });
 updateVisibility();
+
+// ---- download all ----
+downloadAllBtn.addEventListener("click", async () => {
+  const batch = results.slice();
+  downloadAllBtn.disabled = true;
+  try {
+    for (let i = 0; i < batch.length; i++) {
+      downloadAllBtn.textContent = `Preparing ${i + 1} of ${batch.length}\u2026`;
+      const r = batch[i];
+      saveBlob(r.getFull ? await r.getFull() : r.previewBlob, r.filename);
+      await new Promise(res => setTimeout(res, 300)); // let the browser start each download
+    }
+  } finally {
+    downloadAllBtn.disabled = false;
+    downloadAllBtn.textContent = "Download all";
+  }
+});
 
 // ---- drag & drop ----
 const dropzone = document.getElementById("dropzone");
