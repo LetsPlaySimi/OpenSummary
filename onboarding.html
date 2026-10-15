@@ -66,6 +66,16 @@
   .slices span:nth-child(2) { background-position: 50% 0; }
   .slices span:nth-child(3) { background-position: 100% 0; }
 
+  .trust { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); overflow: hidden; }
+  .trust > div { padding: 28px; display: flex; flex-direction: column; gap: 10px; border-left: 1px solid var(--border); }
+  .trust > div:first-child { border-left: 0; }
+  .trust svg { width: 32px; height: 32px; stroke: var(--accent-text); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .trust h3 { margin: 0; font-size: 20px; }
+  .trust p { margin: 0; color: var(--muted); }
+  .trust a { color: var(--accent-text); }
+  .trust a:focus-visible { outline: 3px solid var(--accent-text); outline-offset: 3px; border-radius: 4px; }
+  @media (max-width: 640px) { .trust > div { border-left: 0; border-top: 1px solid var(--border); } .trust > div:first-child { border-top: 0; } }
+
   .steps-wrap { display: flex; flex-direction: column; gap: 32px; }
   h2 { font-size: 44px; }
   .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
@@ -90,7 +100,7 @@
       <div class="hero-text">
         <div class="eyebrow">WELCOME</div>
         <h1>One photo, a summary and a split, together</h1>
-        <p class="lead">Add your shots and get a clean EXIF summary image and equal slices for carousel posts, both ready to post. Free to use, no account needed.</p>
+        <p class="lead">Add your shots and get a clean EXIF summary image and equal slices for carousel posts, both ready to post. Everything runs in your browser, so your photos never leave your device. Free, open source, no account needed.</p>
         <div class="cta-row">
           <button class="btn" type="button" data-start>Get started</button>
           <span class="note">Takes about 30 seconds</span>
@@ -115,6 +125,24 @@
           </div>
           <div class="tool-title"><div class="display">Photosplitter</div><p>Wide shots cut into 2 to 5 slices</p></div>
         </div>
+      </div>
+    </section>
+
+    <section class="trust" aria-label="Privacy and openness">
+      <div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <h3>All in your browser</h3>
+        <p>Reading EXIF, building the summary and cutting the slices all happen on your device. Your photos are never uploaded.</p>
+      </div>
+      <div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>
+        <h3>Open source</h3>
+        <p>The full code is public, so you can read it, check it and reuse it. <a href="https://github.com/LetsPlaySimi/OpenSummary" target="_blank" rel="noopener">View on GitHub</a></p>
+      </div>
+      <div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 14 0M3 12h2m14 0h2M4 20L20 4"/></svg>
+        <h3>Serverless</h3>
+        <p>There is no backend to send data to: no server, no account and no tracking of your images.</p>
       </div>
     </section>
 
