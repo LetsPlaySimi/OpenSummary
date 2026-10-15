@@ -6,6 +6,12 @@
     <meta name="theme-color" content="#ffffff" />
     <title>OpenSummary.app</title>
     <script>
+      // First visit: send the user to the onboarding page once
+      try {
+        if (!localStorage.getItem("onboardingSeen")) location.replace("onboarding.html");
+      } catch (e) {}
+    </script>
+    <script>
       // Apply a saved theme choice before first paint (avoids a light flash)
       try {
         var saved = localStorage.getItem("theme");
