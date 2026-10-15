@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /onboarding.html
+
+Sitemap: https://opensummary.app/sitemap.xml

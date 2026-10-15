@@ -4,11 +4,98 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#ffffff" />
-    <title>OpenSummary.app</title>
+    <title>OpenSummary – Free Open Source PhotoSummary App Alternative</title>
+    <meta name="description" content="Free, open source PhotoSummaryApp alternative. Add EXIF camera info to your photos and split them for social media, all in your browser. No signup." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://opensummary.app/" />
+
+    <!-- Open Graph / social previews -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OpenSummary.app" />
+    <meta property="og:title" content="OpenSummary – Free Open Source PhotoSummary App Alternative" />
+    <meta property="og:description" content="Add EXIF camera info to your photos and split them for social media. Free, open source, and 100% on your device." />
+    <meta property="og:url" content="https://opensummary.app/" />
+    <meta property="og:image" content="https://opensummary.app/og-image.png" />
+    <meta property="og:image:alt" content="OpenSummary.app – add EXIF info to your photos" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OpenSummary – Free Open Source PhotoSummary App Alternative" />
+    <meta name="twitter:description" content="Add EXIF camera info to your photos and split them for social media. Free, open source, and 100% on your device." />
+    <meta name="twitter:image" content="https://opensummary.app/og-image.png" />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://opensummary.app/#website",
+          "url": "https://opensummary.app/",
+          "name": "OpenSummary",
+          "alternateName": ["OpenSummary.app", "OpenSummaryApp", "Open Summary App"]
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://opensummary.app/#app",
+          "name": "OpenSummary",
+          "alternateName": ["OpenSummary.app", "OpenSummaryApp"],
+          "url": "https://opensummary.app/",
+          "description": "Free, open source alternative to PhotoSummary-style apps. Add EXIF camera info (aperture, shutter speed, ISO, focal length, camera and lens) to your photos and split them into pieces for social media. Runs entirely in your browser.",
+          "applicationCategory": "MultimediaApplication",
+          "operatingSystem": "Any (web browser)",
+          "browserRequirements": "Requires a modern browser with JavaScript",
+          "isAccessibleForFree": true,
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+          "license": "https://github.com/LetsPlaySimi/OpenSummary",
+          "codeRepository": "https://github.com/LetsPlaySimi/OpenSummary"
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Is there a free PhotoSummaryApp alternative?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. OpenSummary is a free, open source alternative to PhotoSummaryApp. It adds EXIF info such as aperture, shutter speed, ISO, focal length, camera and lens to your photos, and can split photos into pieces for social media. There is no signup and no payment."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is OpenSummary really free?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. OpenSummary is completely free and open source. The code is available on GitHub."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Are my photos uploaded anywhere?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. Everything happens locally in your browser. Your photos are never uploaded to a server."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What does OpenSummary do?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "It reads the EXIF data from your photos and draws a summary over a blurred copy of the picture, and it can also split a photo into 2 to 10 pieces for carousel posts on social media. You can add an optional copyright line."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
     <script>
-      // First visit: send the user to the onboarding page once
+      // First visit: send the user to the onboarding page once.
+      // Search engine crawlers are skipped, otherwise they would never see this page
+      // (they don't keep localStorage, so every crawl would look like a "first visit").
       try {
-        if (!localStorage.getItem("onboardingSeen")) location.replace("onboarding.html");
+        var isBot = /bot|crawl|spider|slurp|bingpreview|duckduckgo|yandex|baidu|facebookexternalhit|lighthouse/i.test(navigator.userAgent);
+        if (!isBot && !localStorage.getItem("onboardingSeen")) location.replace("onboarding.html");
       } catch (e) {}
     </script>
     <script>
@@ -450,6 +537,18 @@
         margin: 0;
       }
 
+      .faq h3 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 16px 0 4px;
+        color: var(--text);
+      }
+
+      .faq .disclaimer {
+        margin-top: 20px;
+        font-size: 12px;
+      }
+
       /* ---- Mobile-first: a little more breathing room once there's space ---- */
       @media (min-width: 480px) {
         body {
@@ -550,7 +649,7 @@
             <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           </button>
         </div>
-        <p class="tagline">Add EXIF info to your photos</p>
+        <p class="tagline">Add EXIF info to your photos – a free, open source PhotoSummary app alternative</p>
       </header>
 
       <section>
@@ -603,11 +702,30 @@
 
       <section class="about">
         <h2>About</h2>
-        <p>OpenSummary is a free and open source tool to easily summarize and split pictures to post on social media. Everything happens on your device, so your pictures are 100% safe. You can find the GitHub repo below.</p>
-        <a href="https://github.com/LetsPlaySimi/OpenSummary" target="_blank">
-  <img src="https://img.shields.io/github/stars/letsplaysimi/exif-js-fix?style=for-the-badge&logo=github&label=Repository" alt="GitHub Stars" />
+        <p>OpenSummary (also written OpenSummaryApp or OpenSummary.app) is a free and open source tool to easily summarize and split pictures to post on social media. Everything happens on your device, so your pictures are 100% safe. You can find the GitHub repo below.</p>
+        <a href="https://github.com/LetsPlaySimi/OpenSummary" target="_blank" rel="noopener">
+  <img src="https://img.shields.io/github/stars/letsplaysimi/exif-js-fix?style=for-the-badge&logo=github&label=Repository" alt="OpenSummary on GitHub" />
 </a>
-     </section>
+      </section>
+
+      <section class="about faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">A free PhotoSummaryApp alternative</h2>
+        <p>Looking for a free PhotoSummaryApp alternative? OpenSummary does the same kind of job: it reads the EXIF data from your photos (aperture, shutter speed, ISO, focal length, date, camera, lens) and adds it to the picture as a clean summary, ready to share. It costs nothing, needs no account, and the source code is public.</p>
+
+        <h3>Is there a free PhotoSummaryApp alternative?</h3>
+        <p>Yes. OpenSummary is a free, open source alternative to PhotoSummaryApp. There is no signup and no payment.</p>
+
+        <h3>Is OpenSummary really free?</h3>
+        <p>Yes. It is completely free and open source, and the code is available on GitHub.</p>
+
+        <h3>Are my photos uploaded anywhere?</h3>
+        <p>No. Everything happens locally in your browser. Your photos are never uploaded to a server.</p>
+
+        <h3>What does OpenSummary do?</h3>
+        <p>It reads the EXIF data from your photos and draws a summary over a blurred copy of the picture. It can also split a photo into 2 to 10 pieces for carousel posts, and you can add an optional copyright line.</p>
+
+        <p class="disclaimer">OpenSummary is an independent project. It is not affiliated with or endorsed by PhotoSummaryApp; other product names are used only to describe what OpenSummary is an alternative to.</p>
+      </section>
     </div>
 
 <script>
