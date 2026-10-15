@@ -669,6 +669,11 @@
           <input type="range" id="blur" min="0" max="10" step="0.5" value="4" />
           <output id="blurVal">4</output>
         </div>
+        <div class="slider-row" id="sizeRow">
+          <label for="textSize">Text &amp; icon size</label>
+          <input type="range" id="textSize" min="50" max="150" step="5" value="100" />
+          <output id="textSizeVal" style="width:4ch">100%</output>
+        </div>
         <div class="slider-row" id="piecesRow" hidden>
           <label for="pieces">Split pieces</label>
           <input type="range" id="pieces" min="2" max="10" step="1" value="2" />
@@ -790,6 +795,15 @@ function fmtExposure(t) {
   return t >= 1 ? (Math.round(t * 10) / 10) + "s" : "1/" + Math.round(1 / t) + "s";
 }
 
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// EXIF "2026:09:26 18:28:05" -> "18:28 26 September 2026"
+function fmtDate(s) {
+  const m = /^(\d{4})[:\-](\d{2})[:\-](\d{2})[ T](\d{2}):(\d{2})/.exec(s);
+  if (!m || !MONTHS[+m[2] - 1]) return s;
+  return `${m[4]}:${m[5]} ${+m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}`;
+}
+
 function buildInfo(ex, copyright) {
   const f = num(EXIF.getTag(ex, "FNumber"));
   const fl = num(EXIF.getTag(ex, "FocalLength"));
@@ -806,11 +820,11 @@ function buildInfo(ex, copyright) {
 
   return {
     top: [
-      ["aperture", f && "f/" + Math.round(f * 10) / 10],
+      ["aperture", f && "f/" + (Math.round(f * 10) / 10).toFixed(1)],
       ["exposure", fmtExposure(EXIF.getTag(ex, "ExposureTime"))],
       ["iso", num(iso) && "ISO " + num(iso)],
       ["focalLength", fl && Math.round(fl) + "mm"],
-      ["dateTime", clean(EXIF.getTag(ex, "DateTimeOriginal"))],
+      ["dateTime", fmtDate(clean(EXIF.getTag(ex, "DateTimeOriginal")))],
     ].filter(r => r[1]),
     bottom: [
       ["camera", cam],
@@ -826,7 +840,7 @@ function buildInfo(ex, copyright) {
 const PREVIEW_MAX = 1200;      // long side of on-screen preview
 const CANVAS_MAX_PX = 16e6;    // stay under mobile canvas limits
 
-async function drawSummary(image, info, blurPct, maxSide = Infinity) {
+async function drawSummary(image, info, blurPct, textScale = 1, maxSide = Infinity) {
   let scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
   scale = Math.min(scale, Math.sqrt(CANVAS_MAX_PX / (image.naturalWidth * image.naturalHeight)));
   const w = Math.round(image.naturalWidth * scale), h = Math.round(image.naturalHeight * scale);
@@ -842,7 +856,8 @@ async function drawSummary(image, info, blurPct, maxSide = Infinity) {
   ctx.drawImage(image, -o, -o, w + o * 2, h + o * 2);
   ctx.filter = "none";
 
-  const pad = base * 0.073, size = base * 0.044, step = pad * 1.2;
+  const pad = base * 0.073, size = base * 0.044 * textScale, step = pad * 1.2 * textScale;
+  const textX = pad + size + base * 0.029; // gap between icon and text
   ctx.font = `${size}px Inter, Helvetica, Arial, sans-serif`;
   ctx.fillStyle = TEXT_COLOR;
   ctx.textBaseline = "top";
@@ -852,7 +867,7 @@ async function drawSummary(image, info, blurPct, maxSide = Infinity) {
 
   const row = (name, text, y) => {
     if (icons[name]) ctx.drawImage(icons[name], pad, y, size, size);
-    ctx.fillText(text, pad * 2, y);
+    ctx.fillText(text, textX, y);
   };
 
   let y = pad;
@@ -872,7 +887,7 @@ async function drawSummary(image, info, blurPct, maxSide = Infinity) {
 
   ctx.textBaseline = "bottom";
   if (icons.website) ctx.drawImage(icons.website, pad, h - pad - size, size, size);
-  ctx.fillText("OpenSummary.app", pad * 2, h - pad);
+  ctx.fillText("OpenSummary.app", textX, h - pad);
   return c;
 }
 
@@ -933,6 +948,9 @@ const splitBox = document.getElementById("split");
 const copyrightInput = document.getElementById("copyright");
 const blurInput = document.getElementById("blur");
 const blurVal = document.getElementById("blurVal");
+const textSizeInput = document.getElementById("textSize");
+const textSizeVal = document.getElementById("textSizeVal");
+const sizeRow = document.getElementById("sizeRow");
 const piecesInput = document.getElementById("pieces");
 const piecesVal = document.getElementById("piecesVal");
 const blurRow = document.getElementById("blurRow");
@@ -963,6 +981,7 @@ async function render() {
   await iconsReady;
 
   const blurPct = parseFloat(blurInput.value);
+  const textScale = parseInt(textSizeInput.value, 10) / 100;
   const n = parseInt(piecesInput.value, 10);
   const wantSummary = summarizeBox.checked;
   const wantSplit = splitBox.checked;
@@ -975,9 +994,9 @@ async function render() {
 
       if (wantSummary) {
         const info = buildInfo(ex, copyrightInput.value.trim());
-        const preview = await canvasToBlob(await drawSummary(img, info, blurPct, PREVIEW_MAX), "image/jpeg", 0.9);
+        const preview = await canvasToBlob(await drawSummary(img, info, blurPct, textScale, PREVIEW_MAX), "image/jpeg", 0.9);
         // full-quality render happens on demand with the exact same parameters
-        const full = async () => canvasToBlob(await drawSummary(img, info, blurPct), "image/jpeg", 0.95);
+        const full = async () => canvasToBlob(await drawSummary(img, info, blurPct, textScale), "image/jpeg", 0.95);
         if (id !== runId) return;
         addResult(summaryEl, preview, name + "_summary.jpg", full);
       }
@@ -1010,12 +1029,13 @@ fileInput.addEventListener("change", () => {
   render();
 });
 function updateVisibility() {
-  blurRow.hidden = copyrightSection.hidden = !summarizeBox.checked;
+  blurRow.hidden = sizeRow.hidden = copyrightSection.hidden = !summarizeBox.checked;
   piecesRow.hidden = !splitBox.checked;
 }
 [summarizeBox, splitBox].forEach(el => el.addEventListener("change", () => { updateVisibility(); render(); }));
 copyrightInput.addEventListener("change", render);
 blurInput.addEventListener("input", () => { blurVal.textContent = blurInput.value; renderSoon(); });
+textSizeInput.addEventListener("input", () => { textSizeVal.textContent = textSizeInput.value + "%"; renderSoon(); });
 piecesInput.addEventListener("input", () => { piecesVal.textContent = piecesInput.value; renderSoon(); });
 updateVisibility();
 
