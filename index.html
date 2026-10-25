@@ -839,6 +839,7 @@ function buildInfo(ex, copyright) {
 // at 1200px and a full-resolution render at 4000px+ look identical.
 const PREVIEW_MAX = 1200;      // long side of on-screen preview
 const CANVAS_MAX_PX = 16e6;    // stay under mobile canvas limits
+const BLUR_MAX = 1000;         // long side of the canvas the background blur runs on
 
 async function drawSummary(image, info, blurPct, textScale = 1, maxSide = Infinity) {
   let scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
@@ -850,11 +851,26 @@ async function drawSummary(image, info, blurPct, textScale = 1, maxSide = Infini
   const ctx = c.getContext("2d");
 
   // blur radius = % of the shorter side; overscan so blurred edges get cropped (no halo)
-  const radius = base * blurPct / 100, o = radius * 2;
+  const radius = base * blurPct / 100;
   ctx.imageSmoothingQuality = "high";
-  if (radius > 0) ctx.filter = `blur(${radius}px)`;
-  ctx.drawImage(image, -o, -o, w + o * 2, h + o * 2);
-  ctx.filter = "none";
+  if (radius > 0) {
+    // Blur on a small canvas and scale it up: the background is soft anyway, and on iOS the
+    // polyfilled blur runs on the CPU and would exhaust memory on a full-size canvas.
+    const k = Math.min(1, BLUR_MAX / Math.max(w, h));
+    const bw = Math.max(1, Math.round(w * k)), bh = Math.max(1, Math.round(h * k));
+    const br = radius * k, o = br * 2;
+    const bc = document.createElement("canvas");
+    bc.width = bw; bc.height = bh;
+    const bctx = bc.getContext("2d");
+    bctx.imageSmoothingQuality = "high";
+    bctx.filter = `blur(${br}px)`;
+    bctx.drawImage(image, -o, -o, bw + o * 2, bh + o * 2);
+    bctx.filter = "none";
+    ctx.drawImage(bc, 0, 0, w, h);
+    bc.width = bc.height = 0; // release the canvas memory right away (iOS frees it late otherwise)
+  } else {
+    ctx.drawImage(image, 0, 0, w, h);
+  }
 
   const pad = base * 0.073, size = base * 0.044 * textScale, step = pad * 1.2 * textScale;
   const textX = pad + size + base * 0.029; // gap between icon and text
