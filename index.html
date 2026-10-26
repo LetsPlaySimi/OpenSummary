@@ -867,7 +867,6 @@ async function drawSummary(image, info, blurPct, textScale = 1, maxSide = Infini
     bctx.drawImage(image, -o, -o, bw + o * 2, bh + o * 2);
     bctx.filter = "none";
     ctx.drawImage(bc, 0, 0, w, h);
-    bc.width = bc.height = 0; // release the canvas memory right away (iOS frees it late otherwise)
   } else {
     ctx.drawImage(image, 0, 0, w, h);
   }
