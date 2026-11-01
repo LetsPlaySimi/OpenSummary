@@ -34,7 +34,7 @@ Inside `index.html`, the script is organised roughly in this order:
 4. **UI and rendering.** `render` runs when the files or options change. It produces a small preview for the screen and defers the full-quality render until the user downloads, using the same parameters. Output is capped at 16 megapixels to stay within mobile canvas limits. Rapid slider changes are debounced, and a run counter cancels stale renders.
 5. **Downloads and input.** "Download all" saves files one at a time. Drag and drop is supported on the upload box.
 
-Two small pieces of state are kept in `localStorage`: whether the onboarding page has been seen, and the theme choice. Nothing else is stored. Crawlers skip the onboarding redirect.
+Three small pieces of state are kept in `localStorage`: whether the onboarding page has been seen, the theme choice, and the last copyright text you typed (so it is autofilled next time). Nothing else is stored. Crawlers skip the onboarding redirect.
 
 The only external request the app makes is for [context-filter-polyfill](https://github.com/davidenke/context-filter-polyfill), loaded from jsDelivr. It makes the canvas `filter` property (used for the blur) work on iOS, where it is not supported natively. Fonts and styles for the app itself are local.
 

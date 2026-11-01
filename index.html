@@ -8,6 +8,8 @@
     <meta name="description" content="Free, open source PhotoSummaryApp alternative. Add EXIF camera info to your photos and split them for social media, all in your browser. No signup." />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href="https://opensummary.app/" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 
     <!-- Open Graph / social previews -->
     <meta property="og:type" content="website" />
@@ -1048,6 +1050,11 @@ function updateVisibility() {
   piecesRow.hidden = !splitBox.checked;
 }
 [summarizeBox, splitBox].forEach(el => el.addEventListener("change", () => { updateVisibility(); render(); }));
+// Remember the last copyright text and autofill it on the next visit
+try { copyrightInput.value = localStorage.getItem("copyright") || ""; } catch (e) {}
+copyrightInput.addEventListener("input", () => {
+  try { localStorage.setItem("copyright", copyrightInput.value); } catch (e) {}
+});
 copyrightInput.addEventListener("change", render);
 blurInput.addEventListener("input", () => { blurVal.textContent = blurInput.value; renderSoon(); });
 textSizeInput.addEventListener("input", () => { textSizeVal.textContent = textSizeInput.value + "%"; renderSoon(); });
