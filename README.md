@@ -30,13 +30,13 @@ Inside `index.html`, the script is organised roughly in this order:
 
 1. **Setup.** Loads the icons by name and defines small helpers for turning a canvas into a Blob and an image URL into an `Image`.
 2. **EXIF formatting.** `getExif` reads the file with `exif.js`, a fork of exif-js. `buildInfo` formats the values and splits them into a top group (exposure settings and date) and a bottom group (camera, lens, copyright). Values that are missing or invalid are skipped rather than printed as `NaN`.
-3. **Drawing.** `drawSummary` paints the blurred photo onto a canvas, then the icons and text. `drawPiece` crops slice *i* of *n* out of the original. All sizes are relative to the image's shorter side, so a preview and a full-resolution render look the same.
-4. **UI and rendering.** `render` runs when the files or options change. It produces a small preview for the screen and defers the full-quality render until the user downloads, using the same parameters. Output is capped at 16 megapixels to stay within mobile canvas limits. Rapid slider changes are debounced, and a run counter cancels stale renders.
+3. **Drawing.** `drawSummary` paints the blurred photo onto a canvas, then the icons and text. The blur is a box blur in JavaScript on a small copy of the photo (long side 640 px). The code then scales this copy up. It does not use the canvas `filter` property, which iOS does not support. `drawPiece` crops slice *i* of *n* out of the original. All sizes are relative to the image's shorter side, so a preview and a full-resolution render look the same.
+4. **UI and rendering.** `render` runs when the files or options change. It produces a small preview for the screen and defers the full-quality render until the user downloads, using the same parameters. Output is capped at 16 megapixels (8 megapixels on iOS) to stay within mobile canvas limits. If a full-size canvas is blank, the app renders again at a smaller size. Rapid slider changes are debounced, and a run counter cancels stale renders.
 5. **Downloads and input.** "Download all" saves files one at a time. Drag and drop is supported on the upload box.
 
 Three small pieces of state are kept in `localStorage`: whether the onboarding page has been seen, the theme choice, and the last copyright text you typed (so it is autofilled next time). Nothing else is stored. Crawlers skip the onboarding redirect.
 
-The only external request the app makes is for [context-filter-polyfill](https://github.com/davidenke/context-filter-polyfill), loaded from jsDelivr. It makes the canvas `filter` property (used for the blur) work on iOS, where it is not supported natively. Fonts and styles for the app itself are local.
+The app makes no external requests. Fonts and styles are local. To see a log of canvas sizes and checks on the page, add `?debug` to the address.
 
 ## Running it locally
 
@@ -64,10 +64,9 @@ By contributing, you agree that your contribution is released under the same lic
 
 ## Credits
 
-OpenSummary builds on two open source libraries:
+OpenSummary builds on one open source library:
 
 - [exif-js](https://github.com/exif-js/exif-js) reads the EXIF data from photos in the browser. OpenSummary uses [a fork with fixes](https://github.com/LetsPlaySimi/exif-js-fix), which is included in this repository as `exif.js`.
-- [context-filter-polyfill](https://github.com/davidenke/context-filter-polyfill) by David Enke makes `ctx.filter` (the canvas blur) work on iOS.
 
 Thanks to their authors and contributors.
 
